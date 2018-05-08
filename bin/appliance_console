@@ -396,8 +396,11 @@ Static Network Configuration
           press_any_key
         end
 
+      when I18n.t("advanced_settings.dbbackup")
+        ManageIQ::ApplianceConsole::UI::DatabaseAdmin.run(:backup)
+
       when I18n.t("advanced_settings.dbrestore")
-        ManageIQ::ApplianceConsole::UI::DatabaseAdmin.run
+        ManageIQ::ApplianceConsole::UI::DatabaseAdmin.run(:restore)
 
       when I18n.t("advanced_settings.key_gen")
         say("#{selection}\n\n")
