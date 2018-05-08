@@ -47,3 +47,5 @@ require 'manageiq/appliance_console/scap'
 require 'manageiq/appliance_console/temp_storage_configuration'
 require 'manageiq/appliance_console/timezone_configuration'
 require 'manageiq/appliance_console/utilities'
+
+require 'manageiq/appliance_console/ui/database_admin'
