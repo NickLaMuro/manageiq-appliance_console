@@ -5,6 +5,7 @@ en:
   advanced_settings:
     menu_order:
     - timezone
+    - dbbackup
     - dbrestore
     - db_config
     - db_replication
@@ -16,6 +17,7 @@ en:
     - summary
     - quit
     timezone: Set Timezone
+    dbbackup: Create Database Backup
     dbrestore: Restore Database From Backup
     db_config: Configure Database
     db_replication: Configure Database Replication
