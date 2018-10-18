@@ -163,21 +163,13 @@ module ManageIQ
 
         @filename         = just_ask(*filename_prompt_args) {|q| q.readline = false} unless action == :restore
         @uri              = URI(ask_for_uri(*remote_file_prompt_args_for("swift")) {|q| q.readline = false})
-        puts @uri
         user              = just_ask(swift_user_prompt) {|q| q.readline = false}
-        puts user.inspect
         pass              = ask_for_password("password for #{user}") {|q| q.readline = false}
-        puts pass.inspect
         region            = just_ask("OpenStack Swift Region") {|q| q.readline = false}
-        puts region.inspect
         @uri.port         = just_ask("OpenStack Swift Port", "5000") {|q| q.readline = false}
-        puts @uri.port.inspect
         security_protocol = ask_with_menu(*security_protocol_menu_args)
-        puts security_protocol.inspect
         api_version       = ask_with_menu(*api_version_menu_args)
-        puts api_version.inspect
         domain_ident      = just_ask("OpenStack V3 Domain Identifier") {|q| q.readline = false} if api_version == "v3"
-        puts domain_ident.inspect
 
         @task          = "evm:db:#{action}:remote"
         query_elements = []
