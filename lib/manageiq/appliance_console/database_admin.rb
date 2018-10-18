@@ -187,14 +187,11 @@ module ManageIQ
         query_elements << "security_protocol=#{security_protocol}" if security_protocol.present?
         @uri.query = query_elements.join('&').presence
 
-        params = [
-          "--",
-          {
-            :uri          => @uri.to_s,
-            :uri_username => user,
-            :uri_password => pass
-          }
-        ]
+        params = {
+          :uri          => @uri.to_s,
+          :uri_username => user,
+          :uri_password => pass
+        }
 
         @task        = "evm:db:#{action}:remote"
         @task_params = ["--", params]
