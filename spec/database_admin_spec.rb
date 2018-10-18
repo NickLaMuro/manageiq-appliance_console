@@ -412,14 +412,14 @@ describe ManageIQ::ApplianceConsole::DatabaseAdmin, :with_ui do
       let(:security_protocol) { 'non-ssl' }
       let(:api_version)       { 'v2' }
       let(:domain_ident)      { 'default' }
-      let(:uri_prompt)        { "Enter the location of the remote backup file\nExample: #{example_uri}" }
-      let(:user_prompt)       { "Enter the User Name with access to this file.\nExample: 'openstack_user'" }
+      let(:uri_prompt)        { "Enter the location of the remote backup file\nExample: #{example_uri}: " }
+      let(:user_prompt)       { "Enter the User Name with access to this file.\nExample: 'openstack_user': " }
       let(:pass_prompt)       { "Enter the password for #{user}" }
-      let(:region_prompt)     { "Enter the OpenStack Swift Region" }
-      let(:port_prompt)       { "Enter the OpenStack Swift Port" }
+      let(:region_prompt)     { "Enter the OpenStack Swift Region: " }
+      let(:port_prompt)       { "Enter the OpenStack Swift Port: |5000| " }
       let(:domain_prompt)     { "OpenStack V3 Domain Identifier" }
-      let(:security_protocol_prompt) { "OpenStack Security Protocol\n\n1) SSL without validation\n2) SSL\n3) Non-SSL\n4)Cancel\n\nChoose the openstack security protocol: |3|" }
-      let(:api_version_prompt)       { "OpenStack API Version\n\n1) Keystone v2\n2) Keystone v3\n3) Cancel\n\nChoose the openstack api version: |1|" }
+      let(:security_protocol_prompt) { "OpenStack Security Protocol\n\n1) SSL without validation\n2) SSL\n3) Non-SSL\n4) None\n\nChoose the openstack security protocol: |3| " }
+      let(:api_version_prompt)       { "OpenStack API Version\n\n1) Keystone v2\n2) Keystone v3\n3) None\n\nChoose the openstack api version: |1| " }
       let(:errmsg)                   { "a valid URI" }
 
       let(:expected_task_params) do
@@ -478,7 +478,12 @@ describe ManageIQ::ApplianceConsole::DatabaseAdmin, :with_ui do
             uri_prompt,
             error,
             prompt,
-            "#{pass_prompt}: ***********\n"
+            user_prompt,
+            "#{pass_prompt}: ***********\n",
+            region_prompt,
+            port_prompt,
+            security_protocol_prompt,
+            api_version_prompt
           ]
 
           expect(subject.uri.to_s).to    eq(uri)
