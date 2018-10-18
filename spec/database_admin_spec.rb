@@ -57,7 +57,8 @@ describe ManageIQ::ApplianceConsole::DatabaseAdmin, :with_ui do
           3) Samba (SMB)
           4) Amazon S3 (S3)
           5) File Transfer Protocol (FTP)
-          6) Cancel
+          6) OpenStack Swift (Swift)
+          7) Cancel
 
           Choose the restore database file: |1|
         PROMPT
@@ -105,8 +106,15 @@ describe ManageIQ::ApplianceConsole::DatabaseAdmin, :with_ui do
         expect(subject.backup_type).to eq(described_class::FTP_FILE)
       end
 
-      it "cancels when CANCEL option is choosen" do
+      it "calls #ask_swift_file_options when choosen" do
+        expect(subject).to receive(:ask_swift_file_options).once
         say "6"
+        subject.ask_file_location
+        expect(subject.backup_type).to eq(described_class::SWIFT_FILE)
+      end
+
+      it "cancels when CANCEL option is choosen" do
+        say "7"
         expect { subject.ask_file_location }.to raise_error signal_error
       end
     end
@@ -383,6 +391,95 @@ describe ManageIQ::ApplianceConsole::DatabaseAdmin, :with_ui do
             error,
             prompt,
             "#{secret_key_prompt}: ***********\n"
+          ]
+
+          expect(subject.uri).to         eq(uri)
+          expect(subject.filename).to    eq(nil)
+          expect(subject.task).to        eq("evm:db:restore:remote")
+          expect(subject.task_params).to eq(expected_task_params)
+        end
+      end
+    end
+
+    describe "#ask_swift_file_options" do
+      let(:example_uri) { subject.send(:sample_url, 'swift') }
+      let(:uri)         { File.dirname(example_uri) }
+      let(:filename)    { File.basename(example_uri) }
+      let(:user)              { 'foobar' }
+      let(:pass)              { 'supersecret' }
+      let(:region)            { 'anyregion' }
+      let(:port)              { '5000' }
+      let(:security_protocol) { 'non-ssl' }
+      let(:api_version)       { 'v2' }
+      let(:domain_ident)      { 'default' }
+      let(:uri_prompt)        { "Enter the location of the remote backup file\nExample: #{example_uri}" }
+      let(:user_prompt)       { "Enter the User Name with access to this file.\nExample: 'openstack_user'" }
+      let(:pass_prompt)       { "Enter the password for #{user}" }
+      let(:region_prompt)     { "Enter the OpenStack Swift Region" }
+      let(:port_prompt)       { "Enter the OpenStack Swift Port" }
+      let(:domain_prompt)     { "OpenStack V3 Domain Identifier" }
+      let(:security_protocol_prompt) { "OpenStack Security Protocol\n\n1) SSL without validation\n2) SSL\n3) Non-SSL\n4)Cancel\n\nChoose the openstack security protocol: |3|" }
+      let(:api_version_prompt)       { "OpenStack API Version\n\n1) Keystone v2\n2) Keystone v3\n3) Cancel\n\nChoose the openstack api version: |1|" }
+      let(:errmsg)                   { "a valid URI" }
+
+      let(:expected_task_params) do
+        [
+          "--",
+          {
+            :uri          => uri,
+            :uri_username => user,
+            :uri_password => pass,
+          }
+        ]
+      end
+
+      context "with a valid uri, user, password, and region given" do
+        before do
+          say [uri, user, region, port, security_protocol, api_version, pass]
+          expect(subject.ask_swift_file_options).to be_truthy
+        end
+
+        it "sets @uri to point to the swift share url" do
+          expect(subject.uri).to eq(uri)
+        end
+
+        it "sets @filename to nil" do
+          expect(subject.filename).to eq(nil)
+        end
+
+        it "sets @task to point to 'evm:db:restore:remote'" do
+          expect(subject.task).to eq("evm:db:restore:remote")
+        end
+
+        it "sets @task_params to point to the swift file, user, and pass" do
+          expect(subject.task_params).to eq(expected_task_params)
+        end
+      end
+
+      context "with a invalid uri given" do
+        let(:bad_uri) { "nfs://host.mydomain.com/path/to/file" }
+
+        before do
+          # say [bad_uri, uri, user, pass, region, port, security_protocol, api_version]
+          say [bad_uri, uri, user, region, port, security_protocol, api_version]
+          expect(subject.ask_swift_file_options).to be_truthy
+        end
+
+        it "reprompts the user and then properly sets the options" do
+          error = "Please provide #{errmsg}"
+
+          expect_readline_question_asked uri_prompt
+          expect_readline_question_asked user_prompt
+          expect_readline_question_asked pass_prompt
+          expect_readline_question_asked region_prompt
+          expect_readline_question_asked port_prompt
+          expect_readline_question_asked security_protocol_prompt
+          expect_readline_question_asked api_version_prompt
+          expect_heard [
+            uri_prompt,
+            error,
+            prompt,
+            "#{pass_prompt}: ***********\n"
           ]
 
           expect(subject.uri).to         eq(uri)
@@ -742,7 +839,8 @@ describe ManageIQ::ApplianceConsole::DatabaseAdmin, :with_ui do
           3) Samba (SMB)
           4) Amazon S3 (S3)
           5) File Transfer Protocol (FTP)
-          6) Cancel
+          6) OpenStack Swift (Swift)
+          7) Cancel
 
           Choose the backup output file name: |1|
         PROMPT
@@ -790,8 +888,15 @@ describe ManageIQ::ApplianceConsole::DatabaseAdmin, :with_ui do
         expect(subject.backup_type).to eq(described_class::FTP_FILE)
       end
 
-      it "cancels when CANCEL option is choosen" do
+      it "calls #ask_swift_file_options when choosen" do
+        expect(subject).to receive(:ask_swift_file_options).once
         say "6"
+        subject.ask_file_location
+        expect(subject.backup_type).to eq(described_class::SWIFT_FILE)
+      end
+
+      it "cancels when CANCEL option is choosen" do
+        say "7"
         expect { subject.ask_file_location }.to raise_error signal_error
       end
     end
@@ -1419,7 +1524,8 @@ describe ManageIQ::ApplianceConsole::DatabaseAdmin, :with_ui do
           3) Samba (SMB)
           4) Amazon S3 (S3)
           5) File Transfer Protocol (FTP)
-          6) Cancel
+          6) OpenStack Swift (Swift)
+          7) Cancel
 
           Choose the dump output file name: |1|
         PROMPT
@@ -1460,8 +1566,14 @@ describe ManageIQ::ApplianceConsole::DatabaseAdmin, :with_ui do
         expect(subject.backup_type).to eq(described_class::FTP_FILE)
       end
 
-      it "cancels when CANCEL option is choosen" do
+      it "calls #ask_swift_file_options when choosen" do
+        expect(subject).to receive(:ask_swift_file_options).once
         say "6"
+        subject.ask_file_location
+        expect(subject.backup_type).to eq(described_class::SWIFT_FILE)
+      end
+      it "cancels when CANCEL option is choosen" do
+        say "7"
         expect { subject.ask_file_location }.to raise_error signal_error
       end
 

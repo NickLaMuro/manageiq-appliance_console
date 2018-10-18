@@ -11,6 +11,7 @@ module ManageIQ
       SMB_FILE   = "smb".freeze
       S3_FILE    = "s3".freeze
       FTP_FILE   = "ftp".freeze
+      SWIFT_FILE = "swift".freeze
 
       DB_RESTORE_FILE      = "/tmp/evm_db.backup".freeze
       DB_DEFAULT_DUMP_FILE = "/tmp/evm_db.dump".freeze
@@ -153,6 +154,44 @@ module ManageIQ
         @task_params = ["--", params]
       end
 
+      def ask_swift_file_options
+        require 'uri'
+        swift_user_prompt = <<-PROMPT.strip_heredoc.chomp
+          User Name with access to this file.
+          Example: 'openstack_user'
+        PROMPT
+
+        @filename         = just_ask(*filename_prompt_args) unless action == :restore
+        @uri              = URI(ask_for_uri(*remote_file_prompt_args_for("swift")))
+        user              = just_ask(swift_user_prompt)
+        pass              = ask_for_password("password for #{user}")
+        region            = just_ask("OpenStack Swift Region")
+        @uri.port         = just_ask("OpenStack Swift Port", "5000")
+        security_protocol = ask_with_menu(*security_protocol_menu_args)
+        api_version       = ask_with_menu(*api_version_menu_args)
+        domain_ident      = just_ask("OpenStack V3 Domain Identifier") if api_version == "v3"
+
+        @task          = "evm:db:#{action}:remote"
+        query_elements = []
+        query_elements << "region=#{region}"                       if region.present?
+        query_elements << "api_version=#{api_version}"             if api_version.present?
+        query_elements << "domain_id=#{domain_ident}"              if domain_ident.present?
+        query_elements << "security_protocol=#{security_protocol}" if security_protocol.present?
+        @uri.query = query_elements.join('&').presence
+
+        params = [
+          "--",
+          {
+            :uri          => @uri.to_s,
+            :uri_username => user,
+            :uri_password => pass
+          }
+        ]
+
+        @task        = "evm:db:#{action}:remote"
+        @task_params = ["--", params]
+      end
+
       def ask_to_delete_backup_after_restore
         if action == :restore && backup_type == LOCAL_FILE
           say("The local database restore file is located at: '#{uri}'.\n")
@@ -213,11 +252,29 @@ module ManageIQ
         end
       end
 
+      def api_version_menu_args
+        [
+          "OpenStack API Version",
+          [["Keystone v2".freeze, "v2".freeze], ["Keystone v3".freeze, "v3".freeze], ["None".freeze, nil]].freeze,
+          ["Keystone v2".freeze, "v2".freeze],
+          nil
+        ]
+      end
+
       def file_menu_args
         [
           action == :restore ? "Restore Database File" : "#{action.capitalize} Output File Name",
           file_options,
           LOCAL_FILE,
+          nil
+        ]
+      end
+
+      def security_protocol_menu_args
+        [
+          "OpenStack Security Protocol",
+          [["SSL without validation".freeze, "ssl".freeze], ["SSL".freeze, "ssl-with-validation".freeze], ["Non-SSL".freeze, "non-ssl".freeze], ["None".freeze, nil]].freeze,
+          ["Non-SSL".freeze, "non-ssl".freeze],
           nil
         ]
       end
