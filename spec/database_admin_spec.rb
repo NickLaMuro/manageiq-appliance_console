@@ -403,7 +403,7 @@ describe ManageIQ::ApplianceConsole::DatabaseAdmin, :with_ui do
 
     describe "#ask_swift_file_options" do
       let(:example_uri) { subject.send(:sample_url, 'swift') }
-      let(:uri)         { File.dirname(example_uri) }
+      let(:uri)         { "swift://host.mydomain.com:5000/path/to/daily_backup?region=anyregion&api_version=v2&security_protocol=non-ssl" }
       let(:filename)    { File.basename(example_uri) }
       let(:user)              { 'foobar' }
       let(:pass)              { 'supersecret' }
