@@ -440,7 +440,7 @@ describe ManageIQ::ApplianceConsole::DatabaseAdmin, :with_ui do
         end
 
         it "sets @uri to point to the swift share url" do
-          expect(subject.uri).to eq(uri)
+          expect(subject.uri.to_s).to eq(uri)
         end
 
         it "sets @filename to nil" do
@@ -482,7 +482,7 @@ describe ManageIQ::ApplianceConsole::DatabaseAdmin, :with_ui do
             "#{pass_prompt}: ***********\n"
           ]
 
-          expect(subject.uri).to         eq(uri)
+          expect(subject.uri.to_s).to    eq(uri)
           expect(subject.filename).to    eq(nil)
           expect(subject.task).to        eq("evm:db:restore:remote")
           expect(subject.task_params).to eq(expected_task_params)
