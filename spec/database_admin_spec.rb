@@ -435,7 +435,7 @@ describe ManageIQ::ApplianceConsole::DatabaseAdmin, :with_ui do
 
       context "with a valid uri, user, password, and region given" do
         before do
-          say [uri, user, region, port, security_protocol, api_version, pass]
+          say [uri, user, pass, region, port, "", "1"]
           expect(subject.ask_swift_file_options).to be_truthy
         end
 
@@ -460,8 +460,7 @@ describe ManageIQ::ApplianceConsole::DatabaseAdmin, :with_ui do
         let(:bad_uri) { "nfs://host.mydomain.com/path/to/file" }
 
         before do
-          # say [bad_uri, uri, user, pass, region, port, security_protocol, api_version]
-          say [bad_uri, uri, user, region, port, security_protocol, api_version]
+          say [bad_uri, uri, user, pass, region, port, "", "1"]
           expect(subject.ask_swift_file_options).to be_truthy
         end
 
